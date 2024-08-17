@@ -31,7 +31,7 @@
   #:use-module (png)
   #:use-module (png image)
   #:use-module (png graphics)
-  #:use-module (qr-code code)
+  #:use-module (qr-code encoder)
   #:export (qr-encode-text
             qr-encode-binary
             qr-code->png-image))
