@@ -33,6 +33,10 @@
   #:use-module (png image)
   #:use-module (png graphics)
   #:use-module (qr-code encoder)
+  #:re-export (ECC-LOW
+               ECC-MEDIUM
+               ECC-QUARTILE
+               ECC-HIGH)
   #:export (qr-encode-text
             qr-encode-binary
             qr-code->png-image
