@@ -16,3 +16,5 @@ version.  Please see =COPYING= file for the terms of GNU General Public License.
 - [[https://www.gnu.org/software/guile/][GNU Guile]] 2.2+
 - [[http://www.nongnu.org/guile-lib/][Guile Library]] 0.1.9 or later.
 - [[https://github.com/artyom-poptsov/guile-png][Guile-PNG]] 0.7.3 or later.
+  This is a soft requirement as it is only needed for =qr-code->png-image=
+  procedure.
