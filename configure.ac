@@ -61,6 +61,7 @@ AC_CONFIG_FILES([
         modules/Makefile
         modules/qr-code/Makefile
         modules/qr-code/core/Makefile
+        doc/Makefile
 ])
 
 dnl texinfo package required to make the documentation in Texinfo format.
