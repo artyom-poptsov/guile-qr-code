@@ -66,7 +66,7 @@
 (define-module (qr-code encoder)
   #:use-module (scheme documentation)
   #:use-module (scheme char)
-  #:use-module (scheme base)
+  #:use-module ((scheme base) #:prefix base:)
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-11)
   #:use-module (qr-code core common)
@@ -128,15 +128,15 @@
       (or (>= idx len) (and (pred? (string-ref str idx)) (loop (+ idx 1)))))))
 
 (define (bytevector-for-each func bv)
-  (let ((len (bytevector-length bv)))
+  (let ((len (base:bytevector-length bv)))
     (do ((idx 0 (+ idx 1)))
         ((>= idx len))
-      (func (bytevector-u8-ref bv idx)))))
+      (func (base:bytevector-u8-ref bv idx)))))
 
 (define (^ x n)
   (if (zero? n)
       1
-      (let ((u (^ (square x) (quotient n 2))))
+      (let ((u (^ (base:square x) (quotient n 2))))
         (if (odd? n)
             (* u x)
             u))))
@@ -229,11 +229,11 @@ version number, after all function modules are excluded.  This includes
 remainder bits, so it might not be a multiple of 8.  The result is in the range
 [208, 29648].  This could be implemented as a 40-entry lookup table."
   (assert (<= MIN-VERSION ver MAX-VERSION) "Version number out of range")
-  (let ((result (+ 64 (* 128 ver) (* 16 (square ver)))))
+  (let ((result (+ 64 (* 128 ver) (* 16 (base:square ver)))))
     (if (< ver 2)
         result
         (let* ((numalign (+ 2 (quotient ver 7)))
-               (cntalign (- (* 25 (square numalign)) (* 10 numalign) 55))
+               (cntalign (- (* 25 (base:square numalign)) (* 10 numalign) 55))
                (result   (- result cntalign)))
           (if (< ver 7)
               result
@@ -322,19 +322,19 @@ Dictionary of \"0\"->0, \"A\"->10, \"$\"->37, etc."
 
 (define (bitbuffer-code bb)
   (let* ((lst (or (%bitbuffer-first bb) '()))
-         (bv  (make-bytevector (quotient (+ 7 (length lst)) 8) 0)))
+         (bv  (base:make-bytevector (quotient (+ 7 (length lst)) 8) 0)))
     (let loop ((head lst)
                (idx  0)
                (val  0)
                (mask 128))
       (if (null? head)
           (if (not (zero? val))
-              (bytevector-u8-set! bv idx val))
+              (base:bytevector-u8-set! bv idx val))
           (let ((nv (if (car head) (+ val mask) val)))
             (if (> mask 1)
                 (loop (cdr head) idx nv (quotient mask 2))
                 (begin
-                  (bytevector-u8-set! bv idx nv)
+                  (base:bytevector-u8-set! bv idx nv)
                   (loop (cdr head) (+ idx 1) 0 128))))))
     bv))
 
@@ -400,10 +400,10 @@ segment."
                  ;;(for-each display (list "bb = " (map (lambda(x)(if x 1 0))(bitbuffer-data bb)) "\n"))
                 (set! len (+ len 1)))))
     (cond
-     ((bytevector? data) (bytevector-for-each add data))
+     ((base:bytevector? data) (bytevector-for-each add data))
      ((list? data)       (for-each add data))
-     ((vector? data)     (vector-for-each add data))
-     ((string? data)     (bytevector-for-each add (string->utf8 data)))
+     ((vector? data)     (base:vector-for-each add data))
+     ((string? data)     (bytevector-for-each add (base:string->utf8 data)))
      (else (error "Invalid data type for bytes")))
     (make-segment mode-BYTE len bb)))
 
@@ -461,7 +461,7 @@ of the bit stream."
    ((equal? str "")             #false)
    ((string-numeric? str)       (make-segment-numeric str))
    ((string-alpha-numeric? str) (make-segment-alpha-numeric str))
-   (else                        (make-segment-bytes (string->utf8 str)))))
+   (else                        (make-segment-bytes (base:string->utf8 str)))))
 
 (define (make-segment-eci assignval)
   "Returns a segment representing an Extended Channel Interpretation
@@ -738,7 +738,7 @@ correction level."
   (define rsdiv           (reed-solomon-compute-divisor blockecclen))
   (define dblocklen       (- shortblocklen blockecclen))
   (define blocks          (make-vector numblocks #f))
-  (define result          (make-bytevector rawcodewords 0))
+  (define result          (base:make-bytevector rawcodewords 0))
 
   ;; Split data into blocks and append ECC to each block
   (let loop ((iblk 0) (pos  0))
@@ -746,17 +746,17 @@ correction level."
         (let* ((short? (< iblk numshortblocks))
                (dlen   (if short? dblocklen (+ dblocklen 1)))
                (pend   (+ pos dlen))
-               (dat    (bytevector-copy data pos pend))
+               (dat    (base:bytevector-copy data pos pend))
                (ecc    (reed-solomon-compute-remainder dat rsdiv))
                (blk    (if short?
-                           (bytevector-append dat #u8(0) ecc)
-                           (bytevector-append dat ecc))))
+                           (base:bytevector-append dat #u8(0) ecc)
+                           (base:bytevector-append dat ecc))))
           (vector-set! blocks iblk blk)
           (loop (+ iblk 1) pend))))
 
   ;; Interleave (not concatenate) the bytes from every block into a single
   ;; sequence.
-  (let ((nbytes (bytevector-length (vector-ref blocks 0))))
+  (let ((nbytes (base:bytevector-length (vector-ref blocks 0))))
     (let fill ((ibyte 0)
                (iblk  0)
                (pos   0))
@@ -770,8 +770,8 @@ correction level."
         (fill ibyte (+ iblk 1) pos))
        (else
         (let* ((blk (vector-ref blocks iblk))
-               (val (bytevector-u8-ref blk ibyte)))
-          (bytevector-u8-set! result pos val)
+               (val (base:bytevector-u8-ref blk ibyte)))
+          (base:bytevector-u8-set! result pos val)
           (fill ibyte (+ iblk 1) (+ pos 1))))))
 
     result))
@@ -938,7 +938,7 @@ on this object's version field, if 7 <= version <= 40."
 entire data area of this QR Code. Function modules need to be marked off before
 this is called."
   (define size (QR-code-size qrcode))
-  (define lend (bytevector-length data))
+  (define lend (base:bytevector-length data))
   (define lenb (* lend 8))
   (define modules (QR-code-modules qrcode))
   (define function? (QR-code-function? qrcode))
@@ -959,7 +959,7 @@ this is called."
                  (y       (if upward? (- size 1 vert) vert))) ; Actual y coordinate
             (if (and (not (vector-ref (vector-ref function? y) x)) (< i lenb))
                 (let*-values (((ibyte ibit) (floor/ i 8))
-                              ((byte)       (bytevector-u8-ref data ibyte))
+                              ((byte)       (base:bytevector-u8-ref data ibyte))
                               ((isdark)     (bit-set? (- 7 ibit) byte)))
                   (vector-set! (vector-ref modules y) x isdark)
                   (set! i (+ i 1)))))))))
@@ -1110,7 +1110,7 @@ function for get-penalty-score."
                     (if (= x size)
                         result
                         (loop-x (+ x 1) (if (color x y) (+ 1 result) result))))))))
-  (define total (square size))
+  (define total (base:square size))
 
   ;; Compute the smallest integer k >= 0 such that (45-5k)% <= dark/total <=
   ;; (55+5k)%.
