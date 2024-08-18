@@ -174,8 +174,6 @@
              #:position (make <point> #:x 0 #:y 0)
              #:height   (+ size (* margin 2))
              #:width    (+ size (* margin 2))))
-    (format (current-error-port) "module size: ~a~%"
-            module-size)
 
     (let row-loop ((row-index 0))
       (unless (= row-index rows-count)
