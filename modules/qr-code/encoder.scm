@@ -69,12 +69,9 @@
   #:use-module (scheme base)
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-11)
-  #:use-module (srfi srfi-43)
-  #:use-module (rnrs bytevectors)
   #:use-module (qr-code core common)
   #:use-module (qr-code core bits)
   #:use-module (qr-code core reed-solomon)
-  #:use-module (png core common)
   #:export (assert
             string-each?
             bytevector-for-each
@@ -749,7 +746,7 @@ correction level."
         (let* ((short? (< iblk numshortblocks))
                (dlen   (if short? dblocklen (+ dblocklen 1)))
                (pend   (+ pos dlen))
-               (dat    (bytevector-copy/part data pos pend))
+               (dat    (bytevector-copy data pos pend))
                (ecc    (reed-solomon-compute-remainder dat rsdiv))
                (blk    (if short?
                            (bytevector-append dat #u8(0) ecc)
