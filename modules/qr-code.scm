@@ -27,6 +27,7 @@
 
 (define-module (qr-code)
   #:use-module (scheme documentation)
+  #:use-module (ice-9 rdelim)
   #:use-module (oop goops)
   #:use-module (png)
   #:use-module (png image)
@@ -34,13 +35,22 @@
   #:use-module (qr-code encoder)
   #:export (qr-encode-text
             qr-encode-binary
-            qr-code->png-image))
+            qr-code->png-image
+            qr-code->text))
 
 
 
 (define-with-docs %default-qr-code-size
   "Default size of a QR-code."
   1024)
+
+(define-with-docs %default-qr-code-ascii-size
+  "Default size of a QR-code."
+  64)
+
+(define-with-docs %no-color
+  "Reset terminal colors."
+  (string-append (string #\esc) "[0m"))
 
 
 
@@ -51,6 +61,90 @@
 (define* (qr-encode-binary data #:key (ecl ECC-LOW))
   "Generate a QR code based on a binary @var{data}.  Return a QR Code."
   (encode-binary data ecl))
+
+(define* (qr-code->text qr-code
+                        #:key
+                        (size %default-qr-code-ascii-size)
+                        (foreground-char #\█)
+                        (background-char #\space)
+                        (width-scale-factor 2)
+                        (height-scale-factor 1)
+                        (foreground-color #f)
+                        (background-color #f)
+                        (margin 2))
+  "Convert a @var{qr-code} to an ASCII art image."
+  (let* ((modules (QR-code-modules qr-code))
+         (first-row (vector-ref modules 0))
+         (row-length (vector-length first-row))
+         (rows-count (vector-length modules))
+         (module-size (inexact->exact
+                       (floor/ size
+                               (vector-length first-row)))))
+
+    (with-output-to-string
+      (lambda ()
+        (let ((width (- (* size width-scale-factor)
+                        (* margin 2))))
+          (for-each (lambda _
+                      (write-line (string-append
+                                   background-color
+                                   (make-string width background-char)
+                                   %no-color)))
+                    (iota (* margin height-scale-factor))))
+        (let row-loop ((row-index 0)
+                       (result    '()))
+          (if (= row-index rows-count)
+              (for-each (lambda (text-row)
+                          (for-each (lambda (k)
+                                      (let ((text-row (string-append
+                                                       background-color
+                                                       (make-string (* margin width-scale-factor)
+                                                                    background-char)
+                                                       %no-color
+                                                       text-row
+                                                       background-color
+                                                       (make-string (* margin width-scale-factor)
+                                                                    background-char)
+                                                       %no-color)))
+                                        (write-line text-row)))
+                                    (* (iota module-size)
+                                       height-scale-factor)))
+                        (reverse result))
+              (let* ((row (vector-ref modules row-index))
+                     (text-row
+                      (let column-loop ((column-index 0)
+                                        (text-row     ""))
+                        (if (= column-index row-length)
+                            text-row
+                            (let* ((module (vector-ref row column-index))
+                                   (text-module (make-string (* module-size
+                                                                width-scale-factor)
+                                                             (if module
+                                                                 foreground-char
+                                                                 background-char)))
+                                   (text-module (if module
+                                                    (if foreground-color
+                                                        (string-append foreground-color
+                                                                       text-module
+                                                                       %no-color)
+                                                        text-module)
+                                                    (if background-color
+                                                        (string-append background-color
+                                                                       text-module
+                                                                       %no-color)
+                                                        text-module))))
+                              (column-loop (+ column-index 1)
+                                           (string-append text-row text-module)))))))
+                (row-loop (+ row-index 1)
+                          (cons text-row result)))))
+        (let ((width (- (* size width-scale-factor)
+                        (* margin 2))))
+          (for-each (lambda _
+                      (write-line (string-append
+                                   background-color
+                                   (make-string width background-char)
+                                   %no-color)))
+                    (iota (* margin height-scale-factor))))))))
 
 (define* (qr-code->png-image qr-code
                              #:key
