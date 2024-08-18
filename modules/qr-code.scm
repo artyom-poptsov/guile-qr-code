@@ -84,33 +84,40 @@
 
     (with-output-to-string
       (lambda ()
-        (let ((width (- (* size width-scale-factor)
-                        (* margin 2))))
-          (for-each (lambda _
-                      (write-line (string-append
-                                   background-color
-                                   (make-string width background-char)
-                                   %no-color)))
-                    (iota (* margin height-scale-factor))))
         (let row-loop ((row-index 0)
                        (result    '()))
           (if (= row-index rows-count)
-              (for-each (lambda (text-row)
-                          (for-each (lambda (k)
-                                      (let ((text-row (string-append
-                                                       background-color
-                                                       (make-string (* margin width-scale-factor)
-                                                                    background-char)
-                                                       %no-color
-                                                       text-row
-                                                       background-color
-                                                       (make-string (* margin width-scale-factor)
-                                                                    background-char)
-                                                       %no-color)))
-                                        (write-line text-row)))
-                                    (* (iota module-size)
-                                       height-scale-factor)))
-                        (reverse result))
+              (let ((width (+ (string-count (car result) foreground-char)
+                              (string-count (car result) background-char)
+                              (* margin width-scale-factor 2))))
+                (for-each (lambda _
+                            (write-line (string-append
+                                         background-color
+                                         (make-string width background-char)
+                                         %no-color)))
+                          (iota (* margin height-scale-factor)))
+                (for-each (lambda (text-row)
+                            (for-each (lambda (k)
+                                        (let ((text-row (string-append
+                                                         background-color
+                                                         (make-string (* margin width-scale-factor)
+                                                                      background-char)
+                                                         %no-color
+                                                         text-row
+                                                         background-color
+                                                         (make-string (* margin width-scale-factor)
+                                                                      background-char)
+                                                         %no-color)))
+                                          (write-line text-row)))
+                                      (* (iota module-size)
+                                         height-scale-factor)))
+                          (reverse result))
+                (for-each (lambda _
+                            (write-line (string-append
+                                         background-color
+                                         (make-string width background-char)
+                                         %no-color)))
+                          (iota (* margin height-scale-factor))))
               (let* ((row (vector-ref modules row-index))
                      (text-row
                       (let column-loop ((column-index 0)
@@ -137,15 +144,7 @@
                               (column-loop (+ column-index 1)
                                            (string-append text-row text-module)))))))
                 (row-loop (+ row-index 1)
-                          (cons text-row result)))))
-        (let ((width (- (* size width-scale-factor)
-                        (* margin 2))))
-          (for-each (lambda _
-                      (write-line (string-append
-                                   background-color
-                                   (make-string width background-char)
-                                   %no-color)))
-                    (iota (* margin height-scale-factor))))))))
+                          (cons text-row result)))))))))
 
 (define* (qr-code->png-image qr-code
                              #:key
