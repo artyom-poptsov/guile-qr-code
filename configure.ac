@@ -61,6 +61,7 @@ AC_CONFIG_FILES([
         modules/Makefile
         modules/qr-code/Makefile
         modules/qr-code/core/Makefile
+        examples/Makefile
         doc/Makefile
         tests/Makefile
 ])
