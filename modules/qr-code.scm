@@ -36,7 +36,7 @@
   #:export (qr-encode-text
             qr-encode-binary
             qr-code->png-image
-            qr-code->text))
+            qr-code->string))
 
 
 
@@ -62,16 +62,16 @@
   "Generate a QR code based on a binary @var{data}.  Return a QR Code."
   (encode-binary data ecl))
 
-(define* (qr-code->text qr-code
-                        #:key
-                        (size %default-qr-code-ascii-size)
-                        (foreground-char #\█)
-                        (background-char #\space)
-                        (width-scale-factor 2)
-                        (height-scale-factor 1)
-                        (foreground-color #f)
-                        (background-color #f)
-                        (margin 2))
+(define* (qr-code->string qr-code
+                          #:key
+                          (size %default-qr-code-ascii-size)
+                          (foreground-char #\█)
+                          (background-char #\space)
+                          (width-scale-factor 2)
+                          (height-scale-factor 1)
+                          (foreground-color #f)
+                          (background-color #f)
+                          (margin 2))
   "Convert a @var{qr-code} to an ASCII art image."
   (let* ((modules (QR-code-modules qr-code))
          (first-row (vector-ref modules 0))
