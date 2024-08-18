@@ -1,4 +1,6 @@
 * Guile-QR-Code
+[[https://github.com/artyom-poptsov/guile-qr-code/actions/workflows/guix.yml/badge.svg]]
+
 A GNU Guile QR code generator based on Guile-PNG.
 
 ** Acknowledgments
