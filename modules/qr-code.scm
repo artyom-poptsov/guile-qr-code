@@ -92,31 +92,43 @@
                               (* margin width-scale-factor 2))))
                 (for-each (lambda _
                             (write-line (string-append
-                                         background-color
+                                         (or background-color
+                                             "")
                                          (make-string width background-char)
-                                         %no-color)))
+                                         (if background-color
+                                             %no-color
+                                             ""))))
                           (iota (* margin height-scale-factor)))
                 (for-each (lambda (text-row)
                             (for-each (lambda (k)
                                         (let ((text-row (string-append
-                                                         background-color
+                                                         (or background-color
+                                                             "")
                                                          (make-string (* margin width-scale-factor)
                                                                       background-char)
-                                                         %no-color
+                                                         (if background-color
+                                                             %no-color
+                                                             "")
                                                          text-row
-                                                         background-color
+                                                         (or background-color
+                                                             "")
                                                          (make-string (* margin width-scale-factor)
                                                                       background-char)
-                                                         %no-color)))
+                                                         (if background-color
+                                                             %no-color
+                                                             ""))))
                                           (write-line text-row)))
                                       (* (iota module-size)
                                          height-scale-factor)))
                           (reverse result))
                 (for-each (lambda _
                             (write-line (string-append
-                                         background-color
+                                         (or background-color
+                                             "")
                                          (make-string width background-char)
-                                         %no-color)))
+                                         (if background-color
+                                             %no-color
+                                             ""))))
                           (iota (* margin height-scale-factor))))
               (let* ((row (vector-ref modules row-index))
                      (text-row
