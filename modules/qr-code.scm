@@ -29,9 +29,6 @@
   #:use-module (scheme documentation)
   #:use-module (ice-9 rdelim)
   #:use-module (oop goops)
-  #:use-module (png)
-  #:use-module (png image)
-  #:use-module (png graphics)
   #:use-module (qr-code encoder)
   #:re-export (ECC-LOW
                ECC-MEDIUM
@@ -157,44 +154,54 @@
                              (foreground-color #vu8(0 0 0))
                              (background-color #vu8(255 255 255)))
   "Convert a @var{qr-code} to a PNG image.  This procedure requires Guile-PNG."
-  (let* ((modules (QR-code-modules qr-code))
-         (image (make <png-image>
-                  #:color-type 2
-                  #:bit-depth  8
-                  #:width      (+ size (* margin 2))
-                  #:height     (+ size (* margin 2))))
-         (first-row (vector-ref modules 0))
-         (rows-count (vector-length modules))
-         (module-size (inexact->exact
-                       (floor/ size
-                               (vector-length first-row)))))
-    (draw! image
-           (make <filled-rectangle>
-             #:color    background-color
-             #:position (make <point> #:x 0 #:y 0)
-             #:height   (+ size (* margin 2))
-             #:width    (+ size (* margin 2))))
+  (let ((draw!              (module-ref (resolve-interface '(png graphics))
+                                        'draw!))
+        (<png-image>        (module-ref (resolve-interface '(png image))
+                                        '<png-image>))
+        (<filled-rectangle> (module-ref (resolve-interface '(png graphics))
+                                        '<filled-rectangle>))
+        (<point>            (module-ref (resolve-interface '(png graphics))
+                                        '<point>)))
+    (unless draw!
+      (error "Guile-PNG is not found"))
+    (let* ((modules (QR-code-modules qr-code))
+           (image (make <png-image>
+                    #:color-type 2
+                    #:bit-depth  8
+                    #:width      (+ size (* margin 2))
+                    #:height     (+ size (* margin 2))))
+           (first-row (vector-ref modules 0))
+           (rows-count (vector-length modules))
+           (module-size (inexact->exact
+                         (floor/ size
+                                 (vector-length first-row)))))
+      (draw! image
+             (make <filled-rectangle>
+               #:color    background-color
+               #:position (make <point> #:x 0 #:y 0)
+               #:height   (+ size (* margin 2))
+               #:width    (+ size (* margin 2))))
 
-    (let row-loop ((row-index 0))
-      (unless (= row-index rows-count)
-        (let* ((row (vector-ref modules row-index))
-               (row-length (vector-length row)))
-          (let column-loop ((column-index 0))
-            (unless (= column-index row-length)
-              (let ((module (vector-ref row column-index)))
-                (when module
-                  (draw! image
-                         (make <filled-rectangle>
-                           #:color foreground-color
-                           #:position (make <point>
-                                        #:x (+ (* column-index module-size)
-                                               margin)
-                                        #:y (+ (* row-index module-size)
-                                               margin))
-                           #:width module-size
-                           #:height module-size)))
-                (column-loop (+ column-index 1)))))
-          (row-loop (+ row-index 1)))))
-    image))
+      (let row-loop ((row-index 0))
+        (unless (= row-index rows-count)
+          (let* ((row (vector-ref modules row-index))
+                 (row-length (vector-length row)))
+            (let column-loop ((column-index 0))
+              (unless (= column-index row-length)
+                (let ((module (vector-ref row column-index)))
+                  (when module
+                    (draw! image
+                           (make <filled-rectangle>
+                             #:color foreground-color
+                             #:position (make <point>
+                                          #:x (+ (* column-index module-size)
+                                                 margin)
+                                          #:y (+ (* row-index module-size)
+                                                 margin))
+                             #:width module-size
+                             #:height module-size)))
+                  (column-loop (+ column-index 1)))))
+            (row-loop (+ row-index 1)))))
+      image)))
 
 ;;; qr.scm ends here.
