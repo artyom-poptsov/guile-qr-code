@@ -2,8 +2,7 @@
   #:use-module (scheme documentation)
   #:export (%alphanumeric-charset
             object-address/hex-string
-            constructor-argument
-            square))
+            constructor-argument))
 
 
 
@@ -18,9 +17,6 @@
 (define (constructor-argument keyword initargs)
   (and (memq keyword initargs)
        (cadr (memq keyword initargs))))
-
-(define (square x)
-  (* x x))
 
 ;; common.scm ends here.
 
