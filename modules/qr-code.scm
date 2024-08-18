@@ -153,6 +153,7 @@
 (define* (qr-code->png-image qr-code
                              #:key
                              (size %default-qr-code-size)
+                             (margin 0)
                              (foreground-color #vu8(0 0 0))
                              (background-color #vu8(255 255 255)))
   "Convert a @var{qr-code} to a PNG image.  This procedure requires Guile-PNG."
@@ -160,8 +161,8 @@
          (image (make <png-image>
                   #:color-type 2
                   #:bit-depth  8
-                  #:width      size
-                  #:height     size))
+                  #:width      (+ size (* margin 2))
+                  #:height     (+ size (* margin 2))))
          (first-row (vector-ref modules 0))
          (rows-count (vector-length modules))
          (module-size (inexact->exact
@@ -171,8 +172,8 @@
            (make <filled-rectangle>
              #:color    background-color
              #:position (make <point> #:x 0 #:y 0)
-             #:height   size
-             #:width    size))
+             #:height   (+ size (* margin 2))
+             #:width    (+ size (* margin 2))))
     (format (current-error-port) "module size: ~a~%"
             module-size)
 
@@ -188,8 +189,10 @@
                          (make <filled-rectangle>
                            #:color foreground-color
                            #:position (make <point>
-                                        #:x (* column-index module-size)
-                                        #:y (* row-index module-size))
+                                        #:x (+ (* column-index module-size)
+                                               margin)
+                                        #:y (+ (* row-index module-size)
+                                               margin))
                            #:width module-size
                            #:height module-size)))
                 (column-loop (+ column-index 1)))))

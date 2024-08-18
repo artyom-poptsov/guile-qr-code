@@ -189,6 +189,7 @@ Convert a @var{qr-code} to a string.
 
 @deffn {Scheme Procedure} qr-code->png-image qr-code @
        [#:size=%default-qr-code-size] @
+       [#:margin=0] @
        [#:foreground-color=#vu8(0 0 0)] @
        [#:background-color=#vu8(255 255 255)]
 
