@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License along with
 Guile-QR-Code.  If not, see <http://www.gnu.org/licenses/>.
 ]])
 
-AC_INIT([Guile-QR-Code], [0.0.0], [poptsov.artyom@gmail.com], [guile-qr-code],
+AC_INIT([Guile-QR-Code], [0.1.0], [poptsov.artyom@gmail.com], [guile-qr-code],
                      [https://github.com/artyom-poptsov/guile-qr-code])
 
 AC_COPYRIGHT(GUILE_QR_CODE_CONFIGURE_COPYRIGHT)
