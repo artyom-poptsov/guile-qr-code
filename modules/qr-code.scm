@@ -28,6 +28,8 @@
 (define-module (qr-code)
   #:use-module (scheme documentation)
   #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 format)
+  #:use-module (rnrs bytevectors)
   #:use-module (oop goops)
   #:use-module (qr-code encoder)
   #:re-export (ECC-LOW
@@ -37,6 +39,7 @@
   #:export (qr-encode-text
             qr-encode-binary
             qr-code->png-image
+            qr-code->svg-image
             qr-code->string))
 
 
@@ -214,5 +217,57 @@
                   (column-loop (+ column-index 1)))))
             (row-loop (+ row-index 1)))))
       image)))
+
+;; This procedure is based on the code from "qrcodegen-demo.scm" by José
+;; Bollo.
+(define* (qr-code->svg-image qr-code
+                             #:key
+                             (border 1)
+                             (foreground-color #vu8(0 0 0))
+                             (background-color #vu8(255 255 255)))
+  "Return a string of SVG code for an image depicting the given @var{qr-code},
+with the given number of @var{border} modules.  The string always uses Unix
+newlines (@code{\n}), regardless of the platform."
+
+  (when (negative? border)
+    (error "Border must be non-negative" border))
+
+  (let* ((size  (QR-code-size qr-code))
+	 (parts (let loop ((r '())
+                           (y (- size 1))
+                           (x (- size 1)))
+		  (if (negative? y)
+		      r
+		      (if (negative? x)
+			  (loop r (- y 1) (- size 1))
+			  (let ((n (if (qr-code-module qr-code x y)
+ 				       `(" "
+                                         "M"
+                                         ,(number->string (+ x border))
+                                         ","
+                                         ,(number->string (+ y border))
+                                         "h1v1h-1z"
+                                         . ,r)
+				       r)))
+			    (loop n y (- x 1)))))))
+         (viewbox-size (number->string (+ size border border)))
+         (fg-color-string (format #f "#~2,'0X~2,'0X~2,'0X"
+                                  (bytevector-u8-ref foreground-color 0)
+                                  (bytevector-u8-ref foreground-color 1)
+                                  (bytevector-u8-ref foreground-color 2)))
+         (bg-color-string (format #f "#~2,'0X~2,'0X~2,'0X"
+                                  (bytevector-u8-ref background-color 0)
+                                  (bytevector-u8-ref background-color 1)
+                                  (bytevector-u8-ref background-color 2))))
+    (apply string-append
+           `("<?xml version='1.0' encoding='UTF-8'?>"
+             "<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN'"
+             " 'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>"
+             "<svg xmlns='http://www.w3.org/2000/svg'"
+             " version='1.1'"
+             " viewBox='0 0 " ,viewbox-size " " ,viewbox-size "'"
+             " stroke='none'>"
+	     "<rect width='100%' height='100%' fill='" ,bg-color-string "'/>"
+             "<path d='" ,@parts "' fill='" ,fg-color-string "'/></svg>"))))
 
 ;;; qr.scm ends here.

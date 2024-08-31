@@ -197,6 +197,18 @@ Convert a @var{qr-code} to a PNG image.  This procedure requires Guile-PNG.
 
 @end deffn
 
+@deffn {Scheme Procedure} qr-code->svg-image qr-code @
+       [#:border=1] @
+       [#:foreground-color=#vu8(0 0 0)] @
+       [#:background-color=#vu8(255 255 255)]
+
+Return a string of SVG code for an image depicting the given @var{qr-code},
+with the given number of @var{border} modules.  The string always uses Unix
+newlines (@code{\n}), regardless of the platform.
+
+@end deffn
+
+
 @c -----------------------------------------------------------------------------
 @node Encoder
 @section Encoder

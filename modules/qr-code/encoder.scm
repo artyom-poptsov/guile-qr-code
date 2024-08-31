@@ -98,6 +98,7 @@
             QR-code-size
             QR-code-error-correction-level
             QR-code-modules
+            qr-code-module
             QR-code-function?
             encode-text
             encode-binary
@@ -551,6 +552,13 @@ length field."
 
   ;; Indicates function modules that are not subjected to masking. Discarded when constructor finishes.
   (function? QR-code-function? %QR-code-function?-set!))
+
+(define (qr-code-module qr-code x y)
+  "Return a module from a @var{qr-code} addressed by @var{x} and @var{y}
+coordinates."
+  (let* ((modules (QR-code-modules qr-code))
+         (row     (vector-ref modules y)))
+    (vector-ref row x)))
 
 (define (encode-text str ecl)
   "Returns a QR Code representing the given Unicode text string at the given

@@ -17,6 +17,10 @@
 (test-assert "qr-encode-binary"
   (qr-encode-binary (string->bytevector "hello world" "UTF-8")))
 
+(test-assert "qr-code->svg-image"
+  (let ((qr-code (qr-encode-text "hello world")))
+    (qr-code->svg-image qr-code)))
+
 
 (define exit-status (test-runner-fail-count (test-runner-current)))
 
